@@ -8,6 +8,8 @@ from ai_workbench.providers import AIProvider
 class AnthropicProvider(AIProvider):
     """Anthropic Claude API provider."""
     
+    DEFAULT_SYSTEM_MESSAGE = "You are a helpful coding assistant."
+    
     def __init__(self, api_key: str, model: str = "claude-3-5-sonnet-20241022"):
         super().__init__(api_key, model)
         self.client = Anthropic(api_key=api_key)
@@ -27,7 +29,7 @@ class AnthropicProvider(AIProvider):
         response = self.client.messages.create(
             model=self.model,
             max_tokens=4096,
-            system=system_message if system_message else "You are a helpful coding assistant.",
+            system=system_message if system_message else self.DEFAULT_SYSTEM_MESSAGE,
             messages=formatted_messages,
             **kwargs
         )
@@ -48,7 +50,7 @@ class AnthropicProvider(AIProvider):
         with self.client.messages.stream(
             model=self.model,
             max_tokens=4096,
-            system=system_message if system_message else "You are a helpful coding assistant.",
+            system=system_message if system_message else self.DEFAULT_SYSTEM_MESSAGE,
             messages=formatted_messages,
             **kwargs
         ) as stream:

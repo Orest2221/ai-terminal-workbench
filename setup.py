@@ -23,7 +23,7 @@ setup(
     },
     author="AI Terminal Workbench",
     description="An AI-powered terminal assistant for coding tasks",
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     python_requires=">=3.8",
 )

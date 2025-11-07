@@ -27,8 +27,8 @@ class GoogleProvider(AIProvider):
             formatted.append({"role": role, "parts": [msg["content"]]})
         return formatted
     
-    def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        """Generate a response using Google Gemini API."""
+    def _prepare_chat(self, messages: List[Dict[str, str]]):
+        """Prepare chat with history and return chat instance and final message."""
         # Extract system message if present
         system_message = None
         formatted_messages = []
@@ -42,34 +42,22 @@ class GoogleProvider(AIProvider):
         # Create chat with history
         chat = self.model_instance.start_chat(history=self._format_messages(formatted_messages[:-1]))
         
-        # Send the last message
+        # Prepare the last message
         message_content = formatted_messages[-1]["content"]
         if system_message:
             message_content = f"{system_message}\n\n{message_content}"
         
+        return chat, message_content
+    
+    def generate_response(self, messages: List[Dict[str, str]], **kwargs) -> str:
+        """Generate a response using Google Gemini API."""
+        chat, message_content = self._prepare_chat(messages)
         response = chat.send_message(message_content)
         return response.text
     
     def generate_stream(self, messages: List[Dict[str, str]], **kwargs):
         """Generate a streaming response using Google Gemini API."""
-        # Extract system message if present
-        system_message = None
-        formatted_messages = []
-        
-        for msg in messages:
-            if msg["role"] == "system":
-                system_message = msg["content"]
-            else:
-                formatted_messages.append(msg)
-        
-        # Create chat with history
-        chat = self.model_instance.start_chat(history=self._format_messages(formatted_messages[:-1]))
-        
-        # Send the last message with streaming
-        message_content = formatted_messages[-1]["content"]
-        if system_message:
-            message_content = f"{system_message}\n\n{message_content}"
-        
+        chat, message_content = self._prepare_chat(messages)
         response = chat.send_message(message_content, stream=True)
         for chunk in response:
             if chunk.text:
